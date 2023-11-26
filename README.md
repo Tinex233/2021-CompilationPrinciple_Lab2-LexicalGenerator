@@ -1,4 +1,4 @@
-# 2021-Lab2-LexicalGenerator
+# 2021 Compilation Principle Lab2: LexicalGenerator
 ***This is a converter that allows for converting NFA to DFA, minimizing DFA, and so on.***  
 SCNU编译原理实验2——正则表达式->NFA->DFA->最小DFA->词法分析程序
 
