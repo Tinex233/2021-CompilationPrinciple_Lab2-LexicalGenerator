@@ -1,0 +1,8 @@
+a(a|b)?c*c
+l(l|d)*
+(a|c)*b
+a*
+b
+a|bc*
+a(b|a)*aba
+(a|b)*aaa(a|b)*
