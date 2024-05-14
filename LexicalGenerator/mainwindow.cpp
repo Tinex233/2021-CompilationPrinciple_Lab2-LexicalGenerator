@@ -52,7 +52,17 @@ void MainWindow::showRes()//显示结果
 {
     if(NumOfRegex==0)
         return;
-    ui->rexCont->setText(content[CurIndex]);
+
+    //控制正则表达式的显示内容，防止过长
+    if(content[CurIndex].length()<=20)
+        ui->rexCont->setText(content[CurIndex]);
+    else
+        ui->rexCont->setText(content[CurIndex].mid(0,19)+"...");
+
+    //鼠标悬停时展示所有内容
+    ui->rexCont->setToolTip(content[CurIndex]);
+
+
     if(CurStatus==_NFA)
     {
         ui->NFAwidget->clear();

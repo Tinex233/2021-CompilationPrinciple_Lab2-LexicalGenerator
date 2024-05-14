@@ -140,19 +140,19 @@ DFAGraph DFAGraph::toMinDFA()
     if(NumOfStates<=0)
         return mdfa;
 
-    vector<int> setNum;//集合号表
+    vector<int> setNum;//集合号表，指示DFA集合被划分到minDFA的哪个集合中
     setNum.resize(NumOfStates+1);
-    set<int> k1,k2;
+    set<int> k1,k2;//划分为非终止状态集k1和终止状态集k2
     for(int i=1;i<isAccepted.size();i++)
     {
         if(isAccepted[i])
         {
-            setNum[i]=1;
+            setNum[i]=2;
             k2.insert(i);
         }
         else
         {
-            setNum[i]=2;
+            setNum[i]=1;
             k1.insert(i);
         }
     }
@@ -168,69 +168,81 @@ DFAGraph DFAGraph::toMinDFA()
     if(k2.size()>1)
         dq.push_back(k2);
 
-    while(!dq.empty())//开始最小化
+    bool part=true;//当上一次队列中集合发生过划分时，需要重新检查一遍是否可划分
+    while(part)
     {
-        set<int> s=dq.front();
-        dq.pop_front();
-        vector<set<edge>> ve;//转移集合表
-        vector<set<int>> vs;//分割的集合
-        for(auto i:s)//对集合s进行分割
+        if(mNumStates>2)//统计各集合划分情况，对多于一个元素的集合检查是否能划分
         {
-            //获取i的能转移到的集合号的集合
-            set<edge> ste;
-            for(int vi=1;vi<graph.size();vi++)
+            for(int ii=1;ii<=mNumStates;ii++)
             {
-                for(auto cm:graph[i])//遍历i的邻接表
-                    ste.insert(edge(cm.CvType,setNum[cm.vj]));//在集合号表中找到转换后状态所在的集合
+                set<int> sss;
+                for(int ij=1;ij<=isAccepted.size();ij++)
+                    if(setNum[ij]==ii)
+                        sss.insert(ij);
+                if(sss.size()>1)
+                    dq.push_back(sss);
             }
-
-            if(vs.size()==0)
+        }
+        part=false;
+        while(!dq.empty())//开始最小化
+        {
+            set<int> s=dq.front();
+            dq.pop_front();
+            vector<set<edge>> ve;//转移集合表
+            vector<set<int>> vs;//划分的集合
+            for(auto i:s)//对集合s进行分割
             {
-                ve.push_back(ste);
-                vs.push_back(set<int>());
-                vs[0].insert(i);
-            }
-            else
-            {
-                bool fequal=false;//转换相同标志
-                for(int vi=0;vi<ve.size();vi++)
+                //获取i的能转移到的集合号的集合
+                set<edge> ste;
+                for(int vi=1;vi<graph.size();vi++)
                 {
-                    if(transEqual(ve[vi],ste))
-                    {
-                        vs[vi].insert(i);//转换相同
-                        fequal=true;
-                        break;
-                    }
+                    for(auto cm:graph[i])//遍历i的邻接表
+                        ste.insert(edge(cm.CvType,setNum[cm.vj]));//在集合号表中找到转换后状态所在的集合
                 }
-                if(!fequal)//不同，分割
+
+                if(vs.size()==0)
                 {
                     ve.push_back(ste);
                     vs.push_back(set<int>());
-                    vs[vs.size()-1].insert(i);
+                    vs[0].insert(i);
+                }
+                else
+                {
+                    bool fequal=false;//转换相同标志
+                    for(int vi=0;vi<ve.size();vi++)
+                    {
+                        if(transEqual(ve[vi],ste))
+                        {
+                            vs[vi].insert(i);//转换相同
+                            fequal=true;
+                            break;
+                        }
+                    }
+                    if(!fequal)//不同，划分
+                    {
+                        ve.push_back(ste);
+                        vs.push_back(set<int>());
+                        vs[vs.size()-1].insert(i);
+                        part=true;
+                    }
                 }
             }
-        }
-//        for(int i=0;i<vs.size();i++)
-//        {
-//            qDebug()<<"set"<<i;
-//            for(auto vv:vs[i])
-//                qDebug()<<vv;
-//        }
-        //清算分割集合vs
-        if(vs.size()>1)
-        {
-            if(vs[0].size()>1)//集合多于一个元素，需要继续测试是否分割
-                dq.push_back(vs[0]);
-        }
-
-        for(int j=1;j<vs.size();j++)//为分割出去的集合编号
-        {
-            if(vs[j].size()>1)
-                dq.push_back(vs[j]);
-            mNumStates++;
-            for(auto vk:vs[j])//遍历集合内状态
+//            for(int i=0;i<vs.size();i++)
+//            {
+//                qDebug()<<"set"<<i;
+//                for(auto vv:vs[i])
+//                    qDebug()<<vv;
+//            }
+            //清算划分集合vs
+            for(int j=1;j<vs.size();j++)//为划分出去的集合编号
             {
-                setNum[vk]=mNumStates;
+                if(vs[j].size()>1)
+                    dq.push_back(vs[j]);
+                mNumStates++;
+                for(auto vk:vs[j])//遍历集合内状态，为其赋予新的状态号
+                {
+                    setNum[vk]=mNumStates;
+                }
             }
         }
     }
@@ -259,7 +271,7 @@ DFAGraph DFAGraph::toMinDFA()
 //    for(int i=1;i<mdfa.isAccepted.size();i++)
 //        qDebug()<<"accept"<<mdfa.isAccepted[i];
 
-    //构建最小化DFA的邻接表 
+    //构建最小化DFA的邻接表
     for(int vi=1;vi<graph.size();vi++)
     {
         set<edge> ts;//存储状态合并后的集合转换
