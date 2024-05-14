@@ -1,3 +1,4 @@
+https://blog.csdn.net/weixin_60344133/article/details/134226291?spm=1001.2014.3001.5502
 # SCNU 2021 Compilation Principle Lab2: LexicalGenerator
 ***This is a converter that allows for converting NFA to DFA, minimizing DFA, and so on.***  
 
