@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/new/prefix1">
+        <file>LexGenPhotos/bg.png</file>
+        <file>LexGenPhotos/arrow.webp</file>
+    </qresource>
+</RCC>
